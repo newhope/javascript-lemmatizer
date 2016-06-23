@@ -1,6 +1,6 @@
 /*
 * JavaScript Lemmatizer v0.0.2
-* https://github.com/takafumir/javascript-lemmatizer
+* https://github.com/newhope/javascript-lemmatizer
 * MIT License
 * by Takafumi Yamano
 */
@@ -16,20 +16,20 @@ if (typeof String.endsWith !== "function") {
 var Lemmatizer = function() {
   this.wn_files = {
     noun: [
-      '../dict/index.noun.json',
-      '../dict/noun.exc.json'
+      'https://raw.githubusercontent.com/takafumir/javascript-lemmatizer/master/dict/index.noun.json',
+      'https://raw.githubusercontent.com/takafumir/javascript-lemmatizer/master/dict/noun.exc.json'
     ],
     verb: [
-      '../dict/index.verb.json',
-      '../dict/verb.exc.json'
+      'https://raw.githubusercontent.com/takafumir/javascript-lemmatizer/master/dict/index.verb.json',
+      'https://raw.githubusercontent.com/takafumir/javascript-lemmatizer/master/dict/verb.exc.json'
     ],
     adj:  [
-      '../dict/index.adj.json',
-      '../dict/adj.exc.json'
+      'https://raw.githubusercontent.com/takafumir/javascript-lemmatizer/master/dict/index.adj.json',
+      'https://raw.githubusercontent.com/takafumir/javascript-lemmatizer/master/dict/adj.exc.json'
     ],
     adv:  [
-      '../dict/index.adv.json',
-      '../dict/adv.exc.json'
+      'https://raw.githubusercontent.com/takafumir/javascript-lemmatizer/master/dict/index.adv.json',
+      'https://raw.githubusercontent.com/takafumir/javascript-lemmatizer/master/dict/adv.exc.json'
     ]
   };
 
@@ -174,21 +174,28 @@ Lemmatizer.prototype = {
   },
 
   open_file: function(key, file) {
-    if (!localStorage.getItem(key)) {
-      var xhr = new XMLHttpRequest();
-      xhr.open("GET", file, false);
-      xhr.send();
-      var data = xhr.responseText;
-      this.store_data(key, data);
+    if (!GM_getValue(key, false)) {
+
+      // l('no cache found for dict.key', key);
+      var _this = this;
+      GM_xmlhttpRequest({
+          method: 'GET',
+          url: file,
+          onload: function(resp) {
+              // l('parse response for', key, file);
+            _this.store_data(key, resp.responseText);
+          }
+      });
     }
   },
 
   store_data: function(key, data) {
-    localStorage.setItem(key, data);
+    // l('caching data', key, data);
+    GM_setValue(key, data);
   },
 
   fetch_data: function(key) {
-    var data = JSON.parse(localStorage.getItem(key));
+    var data = JSON.parse(GM_getValue(key));
     return data;
   },
   // end of set up dictionary data
